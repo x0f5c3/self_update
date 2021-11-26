@@ -45,8 +45,8 @@ which runs something roughly equivalent to:
 
 ```rust
 use self_update::cargo_crate_version;
-
-fn update() -> Result<(), Box<::std::error::Error>> {
+use self_update::update::ReleaseUpdate;
+fn update() -> Result<(), Box<dyn std::error::Error>> {
     let status = self_update::backends::github::Update::configure()
         .repo_owner("jaemk")
         .repo_name("self_update")
@@ -68,8 +68,8 @@ and any file not matching the format, or not matching the provided prefix string
 
 ```rust
 use self_update::cargo_crate_version;
-
-fn update() -> Result<(), Box<::std::error::Error>> {
+use self_update::update::ReleaseUpdate;
+fn update() -> Result<(), Box<dyn std::error::Error>> {
     let status = self_update::backends::s3::Update::configure()
         .bucket_name("self_update_releases")
         .asset_prefix("something/self_update")
@@ -834,7 +834,7 @@ mod tests {
             .expect("tempdir fail");
         let out_path = out_tmp.path();
         Extract::from_source(&fp)
-            .extract_into(&out_path)
+            .extract_into(out_path)
             .expect("extract fail");
         let out_file = out_path.join("temp");
         assert!(out_file.exists());
@@ -866,7 +866,7 @@ mod tests {
             .expect("tempdir fail");
         let out_path = out_tmp.path();
         Extract::from_source(&fp)
-            .extract_into(&out_path)
+            .extract_into(out_path)
             .expect("extract fail");
         let out_file = out_path.join("temp.txt");
         assert!(out_file.exists());
@@ -914,7 +914,7 @@ mod tests {
             .expect("tempdir fail");
         let out_path = out_tmp.path();
         Extract::from_source(&fp)
-            .extract_file(&out_path, "renamed_file")
+            .extract_file(out_path, "renamed_file")
             .expect("extract fail");
         let out_file = out_path.join("renamed_file");
         assert!(out_file.exists());
@@ -1034,7 +1034,7 @@ mod tests {
     }
 
     fn build_test_archive<T: AsRef<Path>>(
-        _archive_file: fs::File,
+        mut _archive_file: fs::File,
         archive_file_path: T,
         archive_kind: ArchiveKind,
     ) {
@@ -1043,7 +1043,7 @@ mod tests {
         match archive_kind {
             #[cfg(all(feature = "archive-tar", feature = "compression-flate2"))]
             ArchiveKind::Tar(Some(Compression::Gz)) => {
-                let tmp_tar_path = archive_file_path
+                let tmp_tar_path = _archive_file_path
                     .parent()
                     .expect("Missing archive file path parent")
                     .join("tar_contents");
@@ -1063,7 +1063,7 @@ mod tests {
                     .expect("tar append dir all fail");
                 let tar_writer = ar.into_inner().expect("failed getting tar writer");
 
-                let mut e = GzEncoder::new(&mut archive_file, flate2::Compression::default());
+                let mut e = GzEncoder::new(&mut _archive_file, flate2::Compression::default());
                 io::copy(&mut tar_writer.as_slice(), &mut e)
                     .expect("failed writing from tar archive to gz encoder");
                 e.finish().expect("gz finish fail");
@@ -1071,7 +1071,7 @@ mod tests {
 
             #[cfg(feature = "archive-zip")]
             ArchiveKind::Zip => {
-                let mut zip = zip::ZipWriter::new(archive_file);
+                let mut zip = zip::ZipWriter::new(_archive_file);
                 let options = zip::write::FileOptions::default()
                     .compression_method(zip::CompressionMethod::Stored);
                 zip.start_file("temp.txt", options)
