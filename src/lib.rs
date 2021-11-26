@@ -360,7 +360,7 @@ impl<'a> Extract<'a> {
         let source = fs::File::open(self.source)?;
         let archive = match self.archive {
             Some(archive) => archive,
-            None => detect_archive(&self.source)?,
+            None => detect_archive(self.source)?,
         };
 
         // We cannot use a feature flag in a match arm. To bypass this the code block is
@@ -445,7 +445,7 @@ impl<'a> Extract<'a> {
         let source = fs::File::open(self.source)?;
         let archive = match self.archive {
             Some(archive) => archive,
-            None => detect_archive(&self.source)?,
+            None => detect_archive(self.source)?,
         };
 
         debug!(
@@ -708,7 +708,7 @@ impl Download {
         loop {
             let n = {
                 let buf = src.fill_buf()?;
-                dest.write_all(&buf)?;
+                dest.write_all(buf)?;
                 buf.len()
             };
             if n == 0 {
@@ -988,7 +988,7 @@ mod tests {
         let out_path = out_tmp.path();
 
         Extract::from_source(&archive_file_path)
-            .extract_into(&out_path)
+            .extract_into(out_path)
             .expect("extract fail");
 
         let out_file = out_path.join("temp.txt");
@@ -1019,14 +1019,14 @@ mod tests {
         let out_path = out_tmp.path();
 
         Extract::from_source(&archive_file_path)
-            .extract_file(&out_path, "temp.txt")
+            .extract_file(out_path, "temp.txt")
             .expect("extract fail");
         let out_file = out_path.join("temp.txt");
         assert!(out_file.exists());
         cmp_content(&out_file, "This is a test!");
 
         Extract::from_source(&archive_file_path)
-            .extract_file(&out_path, "inner_archive/temp2.txt")
+            .extract_file(out_path, "inner_archive/temp2.txt")
             .expect("extract fail");
         let out_file = out_path.join("inner_archive/temp2.txt");
         assert!(out_file.exists());
@@ -1034,11 +1034,11 @@ mod tests {
     }
 
     fn build_test_archive<T: AsRef<Path>>(
-        mut archive_file: fs::File,
+        _archive_file: fs::File,
         archive_file_path: T,
         archive_kind: ArchiveKind,
     ) {
-        let archive_file_path = archive_file_path.as_ref();
+        let _archive_file_path = archive_file_path.as_ref();
 
         match archive_kind {
             #[cfg(all(feature = "archive-tar", feature = "compression-flate2"))]
