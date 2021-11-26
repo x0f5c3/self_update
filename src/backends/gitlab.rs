@@ -361,14 +361,14 @@ impl UpdateBuilder {
     ///
     /// * Errors:
     ///     * Config - Invalid `Update` configuration
-    pub fn build(&self) -> Result<Box<dyn ReleaseUpdate>> {
+    pub fn build(&self) -> Result<Update> {
         let bin_install_path = if let Some(v) = &self.bin_install_path {
             v.clone()
         } else {
             env::current_exe()?
         };
 
-        Ok(Box::new(Update {
+        Ok(Update {
             repo_owner: if let Some(ref owner) = self.repo_owner {
                 owner.to_owned()
             } else {
@@ -406,7 +406,7 @@ impl UpdateBuilder {
             show_output: self.show_output,
             no_confirm: self.no_confirm,
             auth_token: self.auth_token.clone(),
-        }))
+        })
     }
 }
 

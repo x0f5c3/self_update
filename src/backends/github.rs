@@ -327,7 +327,7 @@ impl UpdateBuilder {
     ///
     /// ```
     /// # use self_update::backends::github::Update;
-    /// # fn run() -> Result<(), Box<::std::error::Error>> {
+    /// # fn run() -> Result<(), Box<dyn std::error::Error>> {
     /// Update::configure()
     ///     .bin_path_in_archive("bin/myapp")
     /// #   .build()?;
@@ -378,14 +378,14 @@ impl UpdateBuilder {
     ///
     /// * Errors:
     ///     * Config - Invalid `Update` configuration
-    pub fn build(&self) -> Result<Box<dyn ReleaseUpdate>> {
+    pub fn build(&self) -> Result<Update> {
         let bin_install_path = if let Some(v) = &self.bin_install_path {
             v.clone()
         } else {
             env::current_exe()?
         };
 
-        Ok(Box::new(Update {
+        Ok(Update {
             repo_owner: if let Some(ref owner) = self.repo_owner {
                 owner.to_owned()
             } else {
@@ -424,7 +424,7 @@ impl UpdateBuilder {
             no_confirm: self.no_confirm,
             auth_token: self.auth_token.clone(),
             custom_url: self.custom_url.clone(),
-        }))
+        })
     }
 }
 
